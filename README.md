@@ -14,3 +14,7 @@
 - View (Front-end)
    - React
    - Material-UI
+
+## Project Artifacts
+
+- [Data Model](https://drive.google.com/file/d/14T5I_eM9qqUq2ni2QD9BgFEYdje3WjNa/view?usp=sharing)
