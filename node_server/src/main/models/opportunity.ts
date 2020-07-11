@@ -1,21 +1,42 @@
-import mongoose, { Model, Schema, Document } from 'mongoose';
+import mongoose, { Model, Schema, SchemaDefinition } from 'mongoose';
+import CRMUserDocument, {
+  crmUserDocument,
+} from '../interfaces/CRMUserDocument';
 
 const ObjectId = mongoose.Types.ObjectId;
 
 /**
+ * Creates the opportunitySchema with the provided interfaces if desired.
+ *
+ * @param {...SchemaDefinition[]} addSchemas different additional schemas that
+ * should be added to the opportunity schema. This is like adding interfaces.
+ * The things added here are just objects.
+ * @returns {Schema} the created opportunitySchema
+ */
+function createOpportunitySchema(...addSchemas: SchemaDefinition[]): Schema {
+  const schema = new Schema({
+    account: ObjectId,
+    notes: String,
+    oppNum: String,
+    dateCreated: { type: Date, default: Date.now },
+  });
+  if (addSchemas) {
+    addSchemas.forEach(addSchema => {
+      schema.add(addSchema);
+    });
+  }
+  return schema;
+}
+
+/**
  * The mongoose schema for an Opportunity in the database.
  */
-const opportunitySchema = new Schema({
-  account: ObjectId,
-  notes: String,
-  oppNum: String,
-  dateCreated: { type: Date, default: Date.now },
-});
+const opportunitySchema = createOpportunitySchema(crmUserDocument);
 
 /**
  * The type representing an Opportunity document in the database.
  */
-export interface OpportunityDoc extends Document {
+export interface OpportunityDoc extends CRMUserDocument {
   account: typeof ObjectId;
   notes: string;
   oppNum: string;
