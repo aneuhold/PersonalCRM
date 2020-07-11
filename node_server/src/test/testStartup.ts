@@ -8,12 +8,12 @@ chai.use(chaiHttp);
 // Use the assert style
 const assert = chai.assert;
 
-describe('POST /api/users', () => {
-  it('should create a new user and add a test project', async () => {
+describe('POST /api/user', () => {
+  it('should create a new user', async () => {
     try {
       const userResponse = await chai
         .request(Globals.app)
-        .post('/api/users')
+        .post('/api/user')
         .send({
           userName: 'testUser',
         });

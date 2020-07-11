@@ -64,6 +64,70 @@ function createApiRouter(db: typeof mongoose): Router {
       res.send(err);
     }
   });
+
+  /**
+   * Creates a new document of the given type with the properties provided in
+   * the `req.body`.
+   */
+  router.post('/:type', async (req, res) => {
+    try {
+      if (Object.keys(models).includes(req.params.type)) {
+        const type = req.params.type as crmModelName;
+        const Model = models[type];
+        const newDoc = new Model(req.body);
+        await newDoc.save();
+        res.status(201).json(newDoc);
+      } else {
+        throw new Error(`Type "${req.params.type} not found."`);
+      }
+    } catch (err) {
+      res.status(400).send(err);
+    }
+  });
+
+  /**
+   * Patches the given type of document and the ID with the provided request
+   * body.
+   */
+  router.patch('/:type/:id', async (req, res) => {
+    try {
+      if (Object.keys(models).includes(req.params.type)) {
+        const type = req.params.type as crmModelName;
+        const doc = checkId(type, req.params.id);
+
+        // Make sure no sneaky stuff is happenin 😅
+        if (req.body._id) {
+          delete req.body._id;
+        }
+        const updatedDoc = Object.assign(doc, req.body);
+        await updatedDoc.save();
+        res.status(200).json(updatedDoc);
+      } else {
+        throw new Error(`Type "${req.params.type} not found."`);
+      }
+    } catch (err) {
+      res.status(400).send(err);
+    }
+  });
+
+  /**
+   * Deletes the provided document type of the provided ID.
+   */
+  router.delete('/:type/:id', async (req, res) => {
+    try {
+      if (Object.keys(models).includes(req.params.type)) {
+        const type = req.params.type as crmModelName;
+        const Model = models[type];
+        const deletedDoc = await Model.findByIdAndDelete(req.params.id).exec();
+        res.status(200).json(deletedDoc);
+      } else {
+        throw new Error(`Type "${req.params.type} not found."`);
+      }
+    } catch (err) {
+      res.status(400).send(err);
+    }
+  });
+
   return router;
 }
 
