@@ -6,6 +6,7 @@ import { generateTestTaskWithId } from './taskTest';
 import { generateTestOppWithId } from './opportunityTest';
 import { generateTestAccountWithId } from './accountTest';
 import { generateTestContactWithId } from './contactTest';
+import { generateTestManufacturerWithId } from './manufacturerTest';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -75,6 +76,7 @@ describe('DELETE', () => {
     const testOpp = await generateTestOppWithId(testUser._id);
     const testAccount = await generateTestAccountWithId(testUser._id);
     const testContact = await generateTestContactWithId(testUser._id);
+    const testManufacturer = await generateTestManufacturerWithId(testUser._id);
     const deleteRes = await Globals.requester.delete(
       `/api/user/${testUser._id}`
     );
@@ -94,6 +96,12 @@ describe('DELETE', () => {
       `/api/contact/${testContact._id}`
     );
     assert.equal(getContactRes.status, 400);
+
+    // Try to get the deleted account
+    const getManufacturerRes = await Globals.requester.get(
+      `/api/manufacturer/${testManufacturer._id}`
+    );
+    assert.equal(getManufacturerRes.status, 400);
 
     // Try to get the deleted opp
     const getOppRes = await Globals.requester.get(
