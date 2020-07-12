@@ -1,1 +1,1 @@
-export type crmModelName = 'user' | 'opportunity' | 'task';
+export type crmModelName = 'user' | 'opportunity' | 'task' | 'account';

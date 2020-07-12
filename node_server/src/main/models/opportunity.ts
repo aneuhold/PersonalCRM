@@ -16,7 +16,10 @@ const ObjectId = mongoose.Types.ObjectId;
  */
 function createOpportunitySchema(...addSchemas: SchemaDefinition[]): Schema {
   const schema = new Schema({
-    account: ObjectId,
+    account: {
+      type: ObjectId,
+      required: true,
+    },
     oppNum: String,
     dateCreated: { type: Date, default: Date.now },
   });
@@ -37,7 +40,7 @@ const opportunitySchema = createOpportunitySchema(crmUserDocument, note);
  * The type representing an Opportunity document in the database.
  */
 export interface OpportunityDoc extends CRMUserDocument, Note {
-  account: typeof ObjectId;
+  account: Account['id'];
   oppNum: string;
   dateCreated: Date;
 }
