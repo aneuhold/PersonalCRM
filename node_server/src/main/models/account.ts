@@ -16,7 +16,10 @@ const ObjectId = mongoose.Types.ObjectId;
  */
 function createAccountSchema(...addSchemas: SchemaDefinition[]): Schema {
   const schema = new Schema({
-    name: String,
+    name: {
+      type: String,
+      default: 'Untitled Account',
+    },
     region: String,
     businessContacts: {
       type: [ObjectId],
@@ -49,7 +52,7 @@ const accountSchema = createAccountSchema(crmUserDocument, note);
 /**
  * The type representing an Account document in the database.
  */
-export interface AcccountDoc extends CRMUserDocument, Note {
+export interface AccountDoc extends CRMUserDocument, Note {
   name: string;
   region: string;
   businessContacts: Array<typeof ObjectId>;
@@ -63,7 +66,7 @@ export interface AcccountDoc extends CRMUserDocument, Note {
  * An `Account` class that represents an Account in the MongoDB. This
  * extends the mongoose `Model` type.
  */
-export type AccountModel = Model<AcccountDoc>;
+export type AccountModel = Model<AccountDoc>;
 
 /**
  * Creates an `Account` model from a given connected mongoose MongoDB
