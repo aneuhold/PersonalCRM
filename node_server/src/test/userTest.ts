@@ -33,6 +33,16 @@ export async function generateTestUser(): Promise<UserDoc> {
   return testUser;
 }
 
+/**
+ * Deletes the user with the specified id and asserts that it was successful.
+ *
+ * @param {string} id the id of the user to delete
+ */
+export async function deleteUser(id: string): Promise<void> {
+  const res = await chai.request(Globals.app).delete(`/api/user/${id}`);
+  assert.equal(res.status, 200);
+}
+
 describe('GET', () => {
   it('should return a user if it exists in the DB', async () => {
     const testUser = await generateTestUser();
@@ -43,6 +53,7 @@ describe('GET', () => {
     assert.equal(res.body._id, testUser._id);
     assert.equal(res.body.userName, testUser.userName);
     assert.deepEqual(res.body.openDocuments, testUser.openDocuments);
+    await deleteUser(testUser._id);
   });
 });
 
