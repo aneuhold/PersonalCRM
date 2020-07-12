@@ -5,6 +5,7 @@ import { UserDoc } from '../main/models/user';
 import { generateTestTaskWithId } from './taskTest';
 import { generateTestOppWithId } from './opportunityTest';
 import { generateTestAccountWithId } from './accountTest';
+import { generateTestContactWithId } from './contactTest';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -20,7 +21,7 @@ const assert = chai.assert;
 export async function generateTestUser(): Promise<UserDoc> {
   const userName = 'someTestUser';
 
-  const res = await chai.request(Globals.app).post(`/api/user`).send({
+  const res = await Globals.requester.post(`/api/user`).send({
     userName: userName,
   });
 
@@ -39,16 +40,14 @@ export async function generateTestUser(): Promise<UserDoc> {
  * @param {string} id the id of the user to delete
  */
 export async function deleteUser(id: string): Promise<void> {
-  const res = await chai.request(Globals.app).delete(`/api/user/${id}`);
+  const res = await Globals.requester.delete(`/api/user/${id}`);
   assert.equal(res.status, 200);
 }
 
 describe('GET', () => {
   it('should return a user if it exists in the DB', async () => {
     const testUser = await generateTestUser();
-    const res = await chai
-      .request(Globals.app)
-      .get(`/api/user/${testUser._id}`);
+    const res = await Globals.requester.get(`/api/user/${testUser._id}`);
     assert.typeOf(res.body, 'object');
     assert.equal(res.body._id, testUser._id);
     assert.equal(res.body.userName, testUser.userName);
@@ -60,16 +59,14 @@ describe('GET', () => {
 describe('DELETE', () => {
   it('should delete a user if it exists', async () => {
     const testUser = await generateTestUser();
-    const deleteRes = await chai
-      .request(Globals.app)
-      .delete(`/api/user/${testUser._id}`);
+    const deleteRes = await Globals.requester.delete(
+      `/api/user/${testUser._id}`
+    );
     assert.typeOf(deleteRes.body, 'object');
     assert.equal(deleteRes.body._id, testUser._id);
     assert.equal(deleteRes.body.userName, testUser.userName);
     assert.deepEqual(deleteRes.body.openDocuments, testUser.openDocuments);
-    const getRes = await chai
-      .request(Globals.app)
-      .get(`/api/user/${testUser._id}`);
+    const getRes = await Globals.requester.get(`/api/user/${testUser._id}`);
     assert.equal(getRes.status, 400);
   });
   it('should delete a user and the users documents if they were created', async () => {
@@ -77,36 +74,39 @@ describe('DELETE', () => {
     const testTask = await generateTestTaskWithId(testUser._id);
     const testOpp = await generateTestOppWithId(testUser._id);
     const testAccount = await generateTestAccountWithId(testUser._id);
-    const deleteRes = await chai
-      .request(Globals.app)
-      .delete(`/api/user/${testUser._id}`);
+    const testContact = await generateTestContactWithId(testUser._id);
+    const deleteRes = await Globals.requester.delete(
+      `/api/user/${testUser._id}`
+    );
     assert.typeOf(deleteRes.body, 'object');
     assert.equal(deleteRes.body._id, testUser._id);
     assert.equal(deleteRes.body.userName, testUser.userName);
     assert.deepEqual(deleteRes.body.openDocuments, testUser.openDocuments);
 
     // Try to get the deleted account
-    const getAccountRes = await chai
-      .request(Globals.app)
-      .get(`/api/account/${testAccount._id}`);
+    const getAccountRes = await Globals.requester.get(
+      `/api/account/${testAccount._id}`
+    );
     assert.equal(getAccountRes.status, 400);
 
+    // Try to get the deleted contact
+    const getContactRes = await Globals.requester.get(
+      `/api/contact/${testContact._id}`
+    );
+    assert.equal(getContactRes.status, 400);
+
     // Try to get the deleted opp
-    const getOppRes = await chai
-      .request(Globals.app)
-      .get(`/api/opportunity/${testOpp._id}`);
+    const getOppRes = await Globals.requester.get(
+      `/api/opportunity/${testOpp._id}`
+    );
     assert.equal(getOppRes.status, 400);
 
     // Try to get the deleted user
-    const getUserRes = await chai
-      .request(Globals.app)
-      .get(`/api/user/${testUser._id}`);
+    const getUserRes = await Globals.requester.get(`/api/user/${testUser._id}`);
     assert.equal(getUserRes.status, 400);
 
     // Try to get the task of the user which should be deleted
-    const getTaskRes = await chai
-      .request(Globals.app)
-      .get(`/api/task/${testTask._id}`);
+    const getTaskRes = await Globals.requester.get(`/api/task/${testTask._id}`);
     assert.equal(getTaskRes.status, 400);
   });
 });

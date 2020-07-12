@@ -11,12 +11,13 @@ const assert = chai.assert;
 describe('POST /api/user', () => {
   it('should create a new user', async () => {
     try {
-      const userResponse = await chai
-        .request(Globals.app)
-        .post('/api/user')
-        .send({
-          userName: 'testUser',
-        });
+      // Setup the global request and keep it open
+      Globals.requester = chai.request(Globals.app).keepOpen();
+
+      // Create the new user
+      const userResponse = await Globals.requester.post('/api/user').send({
+        userName: 'testUser',
+      });
       assert.equal(userResponse.status, 201);
       assert.typeOf(userResponse.body, 'object');
       assert.typeOf(userResponse.body._id, 'string');

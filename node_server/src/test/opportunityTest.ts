@@ -22,7 +22,7 @@ export async function generateTestOppWithId(
 ): Promise<OpportunityDoc> {
   const oppName = 'Some test opp';
 
-  const res = await chai.request(Globals.app).post(`/api/opportunity`).send({
+  const res = await Globals.requester.post(`/api/opportunity`).send({
     name: oppName,
     crmUser: userId,
   });
@@ -48,9 +48,7 @@ async function generateTestOpp(): Promise<OpportunityDoc> {
 describe('GET', () => {
   it('should return an opp if it exists in the DB', async () => {
     const testOpp = await generateTestOpp();
-    const res = await chai
-      .request(Globals.app)
-      .get(`/api/opportunity/${testOpp._id}`);
+    const res = await Globals.requester.get(`/api/opportunity/${testOpp._id}`);
     assert.equal(res.status, 200);
     assert.typeOf(res.body, 'object');
     assert.equal(res.body.name, testOpp.name);
@@ -61,16 +59,16 @@ describe('GET', () => {
 describe('DELETE', () => {
   it('should delete an opp if it exists', async () => {
     const testOpp = await generateTestOpp();
-    const deleteRes = await chai
-      .request(Globals.app)
-      .delete(`/api/opportunity/${testOpp._id}`);
+    const deleteRes = await Globals.requester.delete(
+      `/api/opportunity/${testOpp._id}`
+    );
     assert.equal(deleteRes.status, 200);
     assert.typeOf(deleteRes.body, 'object');
     assert.equal(deleteRes.body.name, testOpp.name);
     assert.equal(deleteRes.body.crmUser, testOpp.crmUser);
-    const getRes = await chai
-      .request(Globals.app)
-      .get(`/api/opportunity/${testOpp._id}`);
+    const getRes = await Globals.requester.get(
+      `/api/opportunity/${testOpp._id}`
+    );
     assert.equal(getRes.status, 400);
   });
 });

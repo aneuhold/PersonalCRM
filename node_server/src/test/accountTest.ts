@@ -22,7 +22,7 @@ export async function generateTestAccountWithId(
 ): Promise<AccountDoc> {
   const accountName = 'Some test account';
 
-  const res = await chai.request(Globals.app).post(`/api/account`).send({
+  const res = await Globals.requester.post(`/api/account`).send({
     name: accountName,
     crmUser: userId,
   });
@@ -48,9 +48,7 @@ async function generateTestAccount(): Promise<AccountDoc> {
 describe('GET', () => {
   it('should return an account if it exists in the DB', async () => {
     const testAccount = await generateTestAccount();
-    const res = await chai
-      .request(Globals.app)
-      .get(`/api/account/${testAccount._id}`);
+    const res = await Globals.requester.get(`/api/account/${testAccount._id}`);
     assert.equal(res.status, 200);
     assert.typeOf(res.body, 'object');
     assert.equal(res.body.name, testAccount.name);
@@ -61,16 +59,16 @@ describe('GET', () => {
 describe('DELETE', () => {
   it('should delete an account if it exists', async () => {
     const testAccount = await generateTestAccount();
-    const deleteRes = await chai
-      .request(Globals.app)
-      .delete(`/api/account/${testAccount._id}`);
+    const deleteRes = await Globals.requester.delete(
+      `/api/account/${testAccount._id}`
+    );
     assert.equal(deleteRes.status, 200);
     assert.typeOf(deleteRes.body, 'object');
     assert.equal(deleteRes.body.name, testAccount.name);
     assert.equal(deleteRes.body.crmUser, testAccount.crmUser);
-    const getRes = await chai
-      .request(Globals.app)
-      .get(`/api/account/${testAccount._id}`);
+    const getRes = await Globals.requester.get(
+      `/api/account/${testAccount._id}`
+    );
     assert.equal(getRes.status, 400);
   });
 });

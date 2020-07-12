@@ -7,6 +7,9 @@ describe('api/account', () => {
 describe('api/opportunity', () => {
   require('./opportunityTest');
 });
+describe('api/contact', () => {
+  require('./contactTest');
+});
 describe('api/user', () => {
   require('./userTest');
 });

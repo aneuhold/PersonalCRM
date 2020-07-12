@@ -20,7 +20,7 @@ const assert = chai.assert;
 export async function generateTestTaskWithId(userId: string): Promise<TaskDoc> {
   const taskTitle = 'Some test task';
 
-  const res = await chai.request(Globals.app).post(`/api/task`).send({
+  const res = await Globals.requester.post(`/api/task`).send({
     title: taskTitle,
     crmUser: userId,
   });
@@ -46,9 +46,7 @@ async function generateTestTask(): Promise<TaskDoc> {
 describe('GET', () => {
   it('should return a task if it exists in the DB', async () => {
     const testTask = await generateTestTask();
-    const res = await chai
-      .request(Globals.app)
-      .get(`/api/task/${testTask._id}`);
+    const res = await Globals.requester.get(`/api/task/${testTask._id}`);
     assert.typeOf(res.body, 'object');
     assert.equal(res.body._id, testTask._id);
     assert.equal(res.body.title, testTask.title);
@@ -59,16 +57,14 @@ describe('GET', () => {
 describe('DELETE', () => {
   it('should delete a task if it exists', async () => {
     const testTask = await generateTestTask();
-    const deleteRes = await chai
-      .request(Globals.app)
-      .delete(`/api/task/${testTask._id}`);
+    const deleteRes = await Globals.requester.delete(
+      `/api/task/${testTask._id}`
+    );
     assert.typeOf(deleteRes.body, 'object');
     assert.equal(deleteRes.body._id, testTask._id);
     assert.equal(deleteRes.body.title, testTask.title);
     assert.equal(deleteRes.body.crmUser, testTask.crmUser);
-    const getRes = await chai
-      .request(Globals.app)
-      .get(`/api/task/${testTask._id}`);
+    const getRes = await Globals.requester.get(`/api/task/${testTask._id}`);
     assert.equal(getRes.status, 400);
   });
 });
