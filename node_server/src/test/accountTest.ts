@@ -17,7 +17,7 @@ const assert = chai.assert;
  * test account
  * @returns {AccountDoc} the created testAccount
  */
-export async function generateAccountWithId(
+export async function generateTestAccountWithId(
   userId: string
 ): Promise<AccountDoc> {
   const accountName = 'Some test account';
@@ -42,7 +42,7 @@ export async function generateAccountWithId(
  * @returns {AccountDoc} the created testAccount
  */
 async function generateTestAccount(): Promise<AccountDoc> {
-  return generateAccountWithId(Globals.testUser._id);
+  return generateTestAccountWithId(Globals.testUser._id);
 }
 
 describe('GET', () => {

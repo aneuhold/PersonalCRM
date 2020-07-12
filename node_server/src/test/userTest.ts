@@ -3,6 +3,8 @@ import chaiHttp from 'chai-http';
 import Globals from './Globals';
 import { UserDoc } from '../main/models/user';
 import { generateTestTaskWithId } from './taskTest';
+import { generateTestOppWithId } from './opportunityTest';
+import { generateTestAccountWithId } from './accountTest';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -62,6 +64,8 @@ describe('DELETE', () => {
   it('should delete a user and the users documents if they were created', async () => {
     const testUser = await generateTestUser();
     const testTask = await generateTestTaskWithId(testUser._id);
+    const testOpp = await generateTestOppWithId(testUser._id);
+    const testAccount = await generateTestAccountWithId(testUser._id);
     const deleteRes = await chai
       .request(Globals.app)
       .delete(`/api/user/${testUser._id}`);
@@ -69,6 +73,18 @@ describe('DELETE', () => {
     assert.equal(deleteRes.body._id, testUser._id);
     assert.equal(deleteRes.body.userName, testUser.userName);
     assert.deepEqual(deleteRes.body.openDocuments, testUser.openDocuments);
+
+    // Try to get the deleted account
+    const getAccountRes = await chai
+      .request(Globals.app)
+      .get(`/api/account/${testAccount._id}`);
+    assert.equal(getAccountRes.status, 400);
+
+    // Try to get the deleted opp
+    const getOppRes = await chai
+      .request(Globals.app)
+      .get(`/api/opportunity/${testOpp._id}`);
+    assert.equal(getOppRes.status, 400);
 
     // Try to get the deleted user
     const getUserRes = await chai
