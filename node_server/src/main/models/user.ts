@@ -1,4 +1,5 @@
 import mongoose, { Model, Schema, Document } from 'mongoose';
+import { createOpportunityModel } from './opportunity';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -11,7 +12,19 @@ const userSchema = new Schema({
     required: true,
   },
   dateCreated: { type: Date, default: Date.now },
-  opportunities: ObjectId,
+
+  /**
+   * Lists out the open documents for the user in order.
+   */
+  openDocuments: {
+    type: [
+      {
+        docType: String,
+        id: ObjectId,
+      },
+    ],
+    default: [],
+  },
 });
 
 /**
@@ -20,6 +33,12 @@ const userSchema = new Schema({
 export interface UserDoc extends Document {
   userName: string;
   dateCreated: Date;
+  openDocuments: [
+    {
+      doctype: string;
+      id: typeof ObjectId;
+    }
+  ];
 }
 
 /**
@@ -40,5 +59,15 @@ export type UserModel = Model<UserDoc>;
  * @returns {UserModel} the `User` class
  */
 export function createUserModel(db: typeof mongoose): UserModel {
+  /**
+   * When a user is deleted, remove all of their associated documents as well.
+   * This needs to be manually updated with any new collections that implement
+   * `CRMUserdocument`.
+   */
+  userSchema.pre('remove', async function () {
+    const Opportunity = createOpportunityModel(db);
+    await Opportunity.deleteMany({ crmUser: this._id });
+  });
+
   return db.model('User', userSchema);
 }

@@ -118,8 +118,13 @@ function createApiRouter(db: typeof mongoose): Router {
       if (Object.keys(models).includes(req.params.type)) {
         const type = req.params.type as crmModelName;
         const Model = models[type];
-        const deletedDoc = await Model.findByIdAndDelete(req.params.id).exec();
-        res.status(200).json(deletedDoc);
+        const docToDelete = await Model.findById(req.params.id).exec();
+        if (!docToDelete) {
+          throw new Error(`Document with ID: "${req.params.id}" not found`);
+        } else {
+          await docToDelete.remove();
+        }
+        res.status(200).json(docToDelete);
       } else {
         throw new Error(`Type "${req.params.type} not found."`);
       }
