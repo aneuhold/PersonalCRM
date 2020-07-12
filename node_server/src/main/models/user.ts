@@ -3,6 +3,7 @@ import { createOpportunityModel } from './opportunity';
 import { createTaskModel } from './task';
 import { createAccountModel } from './account';
 import { createContactModel } from './contact';
+import { createManufacturerModel } from './manufacturer';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -72,11 +73,13 @@ export function createUserModel(db: typeof mongoose): UserModel {
     const Task = createTaskModel(db);
     const Account = createAccountModel(db);
     const Contact = createContactModel(db);
+    const Manufacturer = createManufacturerModel(db);
     await Promise.all([
       Opportunity.deleteMany({ crmUser: this._id }),
       Task.deleteMany({ crmUser: this._id }),
       Account.deleteMany({ crmUser: this._id }),
       Contact.deleteMany({ crmUser: this._id }),
+      Manufacturer.deleteMany({ crmUser: this._id }),
     ]);
   });
 

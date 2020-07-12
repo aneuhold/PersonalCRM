@@ -3,4 +3,5 @@ export type crmModelName =
   | 'opportunity'
   | 'task'
   | 'account'
-  | 'contact';
+  | 'contact'
+  | 'manufacturer';
