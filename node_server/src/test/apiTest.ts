@@ -1,1 +1,3 @@
-// Run the tests here :)
+describe('api/task', () => {
+  require('./taskTest');
+});

@@ -7,7 +7,10 @@ const ObjectId = mongoose.Types.ObjectId;
  * Used to add on the CRMUserDocument interface to a schema.
  */
 export const crmUserDocument = {
-  crmUser: ObjectId,
+  crmUser: {
+    type: ObjectId,
+    required: true,
+  },
 };
 
 /**

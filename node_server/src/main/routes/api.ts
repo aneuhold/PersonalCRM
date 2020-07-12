@@ -4,6 +4,7 @@ import mongoose, { Model, Document } from 'mongoose';
 import { createUserModel } from '../models/user';
 import { crmModelName } from '../models/crmModels';
 import { createOpportunityModel } from '../models/opportunity';
+import { createTaskModel } from '../models/task';
 
 /**
  * Creates the express Router for the `/api` endpoint.
@@ -18,6 +19,7 @@ function createApiRouter(db: typeof mongoose): Router {
   const models: { [modelName: string]: Model<Document> } = {
     user: createUserModel(db),
     opportunity: createOpportunityModel(db),
+    task: createTaskModel(db),
   };
 
   /**

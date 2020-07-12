@@ -1,5 +1,6 @@
 import mongoose, { Model, Schema, Document } from 'mongoose';
 import { createOpportunityModel } from './opportunity';
+import { createTaskModel } from './task';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -66,7 +67,11 @@ export function createUserModel(db: typeof mongoose): UserModel {
    */
   userSchema.pre('remove', async function () {
     const Opportunity = createOpportunityModel(db);
-    await Opportunity.deleteMany({ crmUser: this._id });
+    const Task = createTaskModel(db);
+    await Promise.all([
+      Opportunity.deleteMany({ crmUser: this._id }),
+      Task.deleteMany({ crmUser: this._id }),
+    ]);
   });
 
   return db.model('User', userSchema);
