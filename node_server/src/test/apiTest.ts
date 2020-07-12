@@ -7,3 +7,6 @@ describe('api/user', () => {
 describe('api/account', () => {
   require('./accountTest');
 });
+describe('api/opportunity', () => {
+  require('./opportunityTest');
+});
