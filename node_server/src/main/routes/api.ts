@@ -8,6 +8,7 @@ import { createTaskModel } from '../models/task';
 import { createAccountModel } from '../models/account';
 import { createContactModel } from '../models/contact';
 import { createManufacturerModel } from '../models/manufacturer';
+import { createAccountTechModel } from '../models/accountTech';
 
 /**
  * Creates the express Router for the `/api` endpoint.
@@ -26,6 +27,7 @@ function createApiRouter(db: typeof mongoose): Router {
     account: createAccountModel(db),
     contact: createContactModel(db),
     manufacturer: createManufacturerModel(db),
+    accountTech: createAccountTechModel(db),
   };
 
   /**
