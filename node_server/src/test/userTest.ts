@@ -2,11 +2,6 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 import Globals from './Globals';
 import { UserDoc } from '../main/models/user';
-import { generateTestTaskWithId } from './taskTest';
-import { generateTestOppWithId } from './opportunityTest';
-import { generateTestAccountWithId } from './accountTest';
-import { generateTestContactWithId } from './contactTest';
-import { generateTestManufacturerWithId } from './manufacturerTest';
 import queries from './testQueries';
 
 // Configure chai
@@ -23,22 +18,8 @@ const assert = chai.assert;
 export async function generateTestUser(): Promise<UserDoc> {
   const userName = 'someTestUser';
 
-  const query = `mutation($userName:String!) {
-    userCreateOne(record: {userName: $userName}) {
-      record {
-        _id
-        userName
-        dateCreated
-        openDocuments {
-          docType
-          id
-        }
-      }
-    }
-  }`;
-
-  const res = await Globals.requester.post(`/graphql`).send({
-    query,
+  const res = await Globals.send({
+    query: queries.userCreateOne,
     variables: {
       userName,
     },
@@ -50,7 +31,7 @@ export async function generateTestUser(): Promise<UserDoc> {
   assert.equal(userRecord.userName, userName);
   assert.deepEqual(userRecord.openDocuments, []);
 
-  const testUser: UserDoc = res.body;
+  const testUser: UserDoc = userRecord;
   return testUser;
 }
 
@@ -75,12 +56,13 @@ describe('userById', () => {
   it('should return a user if provided a valid ID', async () => {
     const testUser = await generateTestUser();
     const query = queries.userById;
-    const res = await Globals.requester.post(`/graphql`).send({
+    const sendObject = {
       query,
       variables: {
         userId: testUser._id,
       },
-    });
+    };
+    const res = await Globals.requester.post(`/graphql`).send(sendObject);
     assert.typeOf(res.body, 'object');
     const userRecord = res.body.data.userById;
     assert.equal(userRecord._id, testUser._id);
@@ -90,19 +72,30 @@ describe('userById', () => {
   });
 });
 
-describe('DELETE', () => {
+describe('userRemoveById', () => {
   it('should delete a user if it exists', async () => {
     const testUser = await generateTestUser();
-    const deleteRes = await Globals.requester.delete(
-      `/api/user/${testUser._id}`
-    );
+    const deleteRes = await Globals.send({
+      query: queries.userRemoveById,
+      variables: {
+        userId: testUser._id,
+      },
+    });
     assert.typeOf(deleteRes.body, 'object');
-    assert.equal(deleteRes.body._id, testUser._id);
-    assert.equal(deleteRes.body.userName, testUser.userName);
-    assert.deepEqual(deleteRes.body.openDocuments, testUser.openDocuments);
-    const getRes = await Globals.requester.get(`/api/user/${testUser._id}`);
-    assert.equal(getRes.status, 400);
+    const deleteResUser = deleteRes.body.data.userRemoveById.record;
+    assert.equal(deleteResUser._id, testUser._id);
+    assert.equal(deleteResUser.userName, testUser.userName);
+    assert.deepEqual(deleteResUser.openDocuments, testUser.openDocuments);
+    const getRes = await Globals.send({
+      query: queries.userById,
+      variables: {
+        userId: testUser._id,
+      },
+    });
+    assert.equal(getRes.status, 200);
+    assert.equal(getRes.body.data.userById, null);
   });
+  /*
   it('should delete a user and the users documents if they were created', async () => {
     const testUser = await generateTestUser();
     const testTask = await generateTestTaskWithId(testUser._id);
@@ -150,4 +143,5 @@ describe('DELETE', () => {
     const getTaskRes = await Globals.requester.get(`/api/task/${testTask._id}`);
     assert.equal(getTaskRes.status, 400);
   });
+  */
 });

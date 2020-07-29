@@ -30,6 +30,12 @@ const queries = {
     }) {
       record {
         _id
+        userName
+        dateCreated
+        openDocuments {
+          id
+          docType
+        }
       }
     }
   }`,
