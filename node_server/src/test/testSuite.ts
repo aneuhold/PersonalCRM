@@ -26,6 +26,6 @@ before(done => {
 
 describe('PersonalCRM tests', () => {
   require('./testStartup');
-  require('./apiTest');
+  // require('./apiTest');
   require('./testCleanup');
 });

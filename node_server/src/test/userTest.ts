@@ -22,11 +22,26 @@ const assert = chai.assert;
 export async function generateTestUser(): Promise<UserDoc> {
   const userName = 'someTestUser';
 
-  const res = await Globals.requester.post(`/api/user`).send({
-    userName: userName,
+  const query = `mutation {
+    userCreateOne(record: {
+      userName: "Test User"
+    }) {
+      record {
+        userName
+        dateCreated
+        openDocuments {
+          docType,
+          id
+        }
+      }
+    }
+  }`;
+
+  const res = await Globals.requester.post(`/graphql`).send({
+    query,
   });
 
-  // Makes sure the response is good and the new task is valid.
+  // Makes sure the response is good and the new user is valid.
   assert.typeOf(res.body, 'object');
   assert.equal(res.body.userName, userName);
   assert.deepEqual(res.body.openDocuments, []);

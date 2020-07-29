@@ -115,9 +115,14 @@ export function addUserFieldsToSchema(
 ): void {
   schemaComposer.Query.addFields({
     userMany: UserTC.getResolver('findMany'),
+    userById: UserTC.getResolver('findById'),
   });
 
   schemaComposer.Mutation.addFields({
     userCreateOne: UserTC.getResolver('createOne'),
+    userRemoveById: UserTC.getResolver('removeOne'),
+    userRemoveMany: UserTC.getResolver('removeMany'),
+    userUpdateOne: UserTC.getResolver('updateOne'),
+    userUpdateById: UserTC.getResolver('updateById'),
   });
 }

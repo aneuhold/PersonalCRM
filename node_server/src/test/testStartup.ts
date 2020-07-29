@@ -8,22 +8,43 @@ chai.use(chaiHttp);
 // Use the assert style
 const assert = chai.assert;
 
-describe('POST /api/user', () => {
-  it('should create a new user', async () => {
-    try {
-      // Setup the global request and keep it open
-      Globals.requester = chai.request(Globals.app).keepOpen();
+/**
+ * Setup the global request and keep it open
+ */
+before(() => {
+  Globals.requester = chai.request(Globals.app).keepOpen();
+});
 
+describe('Tests startup', () => {
+  it('should create a new user given a valid userName', async () => {
+    try {
       // Create the new user
-      const userResponse = await Globals.requester.post('/api/user').send({
-        userName: 'testUser',
+      const query = `mutation {
+        userCreateOne(record: {
+          userName: "Test User"
+        }) {
+          record {
+            _id
+            userName
+            openDocuments {
+              docType,
+              id
+            }
+          }
+        }
+      }`;
+      const userResponse = await Globals.requester.post('/graphql').send({
+        query,
       });
-      assert.equal(userResponse.status, 201);
+      assert.equal(userResponse.status, 200);
       assert.typeOf(userResponse.body, 'object');
-      assert.typeOf(userResponse.body._id, 'string');
-      assert.equal(userResponse.body.userName, 'testUser');
-      Globals.testUser = userResponse.body;
+      const userRecord = userResponse.body.data.userCreateOne.record;
+      assert.typeOf(userRecord._id, 'string');
+      assert.equal(userRecord.userName, 'Test User');
+      assert.deepEqual(userRecord.openDocuments, []);
+      Globals.testUser = userRecord;
     } catch (err) {
+      console.log(err);
       assert.isNull(err);
     }
   });
