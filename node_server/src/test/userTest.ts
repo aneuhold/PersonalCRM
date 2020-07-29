@@ -7,6 +7,7 @@ import { generateTestOppWithId } from './opportunityTest';
 import { generateTestAccountWithId } from './accountTest';
 import { generateTestContactWithId } from './contactTest';
 import { generateTestManufacturerWithId } from './manufacturerTest';
+import queries from './testQueries';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -59,15 +60,7 @@ export async function generateTestUser(): Promise<UserDoc> {
  * @param {string} id the id of the user to delete
  */
 export async function deleteUser(id: string): Promise<void> {
-  const query = `mutation($userId:MongoID) {
-    userRemoveById(filter: {
-      _id: $userId
-    }) {
-      record {
-        _id
-      }
-    }
-  }`;
+  const query = queries.userRemoveById;
   const res = await Globals.requester.post(`/graphql`).send({
     query,
     variables: {
@@ -78,14 +71,21 @@ export async function deleteUser(id: string): Promise<void> {
   assert.equal(res.body.data.userRemoveById.record._id, id);
 }
 
-describe('GET', () => {
-  it('should return a user if it exists in the DB', async () => {
+describe('userById', () => {
+  it('should return a user if provided a valid ID', async () => {
     const testUser = await generateTestUser();
-    const res = await Globals.requester.get(`/api/user/${testUser._id}`);
+    const query = queries.userById;
+    const res = await Globals.requester.post(`/graphql`).send({
+      query,
+      variables: {
+        userId: testUser._id,
+      },
+    });
     assert.typeOf(res.body, 'object');
-    assert.equal(res.body._id, testUser._id);
-    assert.equal(res.body.userName, testUser.userName);
-    assert.deepEqual(res.body.openDocuments, testUser.openDocuments);
+    const userRecord = res.body.data.userById;
+    assert.equal(userRecord._id, testUser._id);
+    assert.equal(userRecord.userName, testUser.userName);
+    assert.deepEqual(userRecord.openDocuments, testUser.openDocuments);
     await deleteUser(testUser._id);
   });
 });

@@ -1,6 +1,7 @@
 import chai from 'chai';
 import chaiHttp from 'chai-http';
 import Globals from './Globals';
+import queries from './testQueries';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -11,16 +12,7 @@ const assert = chai.assert;
 describe('Tests cleanup', () => {
   it('should delete a user provided a valid ID', done => {
     const testUser = Globals.testUser;
-    const query = `mutation($userId:MongoID) {
-      userRemoveById(filter: {
-        _id: $userId
-      }) {
-        record {
-          _id
-          userName
-        }
-      }
-    }`;
+    const query = queries.userRemoveById;
     if (testUser) {
       Globals.requester
         .post(`/graphql`)

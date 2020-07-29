@@ -1,6 +1,7 @@
 import chai from 'chai';
 import chaiHttp from 'chai-http';
 import Globals from './Globals';
+import queries from './testQueries';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -19,28 +20,19 @@ describe('Tests startup', () => {
   it('should create a new user given a valid userName', async () => {
     try {
       // Create the new user
-      const query = `mutation {
-        userCreateOne(record: {
-          userName: "Test User"
-        }) {
-          record {
-            _id
-            userName
-            openDocuments {
-              docType,
-              id
-            }
-          }
-        }
-      }`;
+      const testUserName = 'Test User';
+      const query = queries.userCreateOne;
       const userResponse = await Globals.requester.post('/graphql').send({
         query,
+        variables: {
+          userName: testUserName,
+        },
       });
       assert.equal(userResponse.status, 200);
       assert.typeOf(userResponse.body, 'object');
       const userRecord = userResponse.body.data.userCreateOne.record;
       assert.typeOf(userRecord._id, 'string');
-      assert.equal(userRecord.userName, 'Test User');
+      assert.equal(userRecord.userName, testUserName);
       assert.deepEqual(userRecord.openDocuments, []);
       Globals.testUser = userRecord;
     } catch (err) {
