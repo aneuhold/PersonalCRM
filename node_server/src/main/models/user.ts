@@ -4,6 +4,8 @@ import { createTaskModel } from './task';
 import { createAccountModel } from './account';
 import { createContactModel } from './contact';
 import { createManufacturerModel } from './manufacturer';
+import { ObjectTypeComposer, SchemaComposer } from 'graphql-compose';
+import composeWithMongoose from 'graphql-compose-mongoose';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -84,4 +86,38 @@ export function createUserModel(db: typeof mongoose): UserModel {
   });
 
   return db.model('User', userSchema);
+}
+
+/**
+ * Creates a `User` type composer.
+ *
+ * @param {typeof mongoose} db the connected MongoDB instance
+ * @returns {ObjectTypeComposer<UserDoc, unknown>} the UserTC
+ */
+export function createUserTC(
+  db: typeof mongoose
+): ObjectTypeComposer<UserDoc, unknown> {
+  const User = createUserModel(db);
+  return composeWithMongoose(User);
+}
+
+/**
+ * Adds fields to the provided schemaComposer for the User model.
+ *
+ * @param {ObjectTypeComposer<UserDoc, unknown>} UserTC the User type composer
+ * to get resolvers for
+ * @param {SchemaComposer<unknown>} schemaComposer the schemaComposer to add
+ * fields to
+ */
+export function addUserFieldsToSchema(
+  UserTC: ObjectTypeComposer<UserDoc, unknown>,
+  schemaComposer: SchemaComposer<unknown>
+): void {
+  schemaComposer.Query.addFields({
+    userMany: UserTC.getResolver('findMany'),
+  });
+
+  schemaComposer.Mutation.addFields({
+    userCreateOne: UserTC.getResolver('createOne'),
+  });
 }
