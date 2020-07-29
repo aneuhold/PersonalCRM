@@ -42,7 +42,7 @@ export async function generateTestUser(): Promise<UserDoc> {
  */
 export async function deleteUser(id: string): Promise<void> {
   const query = queries.userRemoveById;
-  const res = await Globals.requester.post(`/graphql`).send({
+  const res = await Globals.send({
     query,
     variables: {
       userId: id,

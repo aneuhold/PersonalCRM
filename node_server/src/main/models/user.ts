@@ -6,6 +6,7 @@ import { createContactModel } from './contact';
 import { createManufacturerModel } from './manufacturer';
 import { ObjectTypeComposer, SchemaComposer } from 'graphql-compose';
 import composeWithMongoose from 'graphql-compose-mongoose';
+import { addFieldsToSchema } from '../graphQL/schema';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -113,16 +114,5 @@ export function addUserFieldsToSchema(
   UserTC: ObjectTypeComposer<UserDoc, unknown>,
   schemaComposer: SchemaComposer<unknown>
 ): void {
-  schemaComposer.Query.addFields({
-    userMany: UserTC.getResolver('findMany'),
-    userById: UserTC.getResolver('findById'),
-  });
-
-  schemaComposer.Mutation.addFields({
-    userCreateOne: UserTC.getResolver('createOne'),
-    userRemoveById: UserTC.getResolver('removeOne'),
-    userRemoveMany: UserTC.getResolver('removeMany'),
-    userUpdateOne: UserTC.getResolver('updateOne'),
-    userUpdateById: UserTC.getResolver('updateById'),
-  });
+  addFieldsToSchema<UserDoc>(UserTC, schemaComposer, 'user');
 }

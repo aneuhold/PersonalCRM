@@ -3,6 +3,9 @@ import CRMUserDocument, {
   crmUserDocument,
 } from '../interfaces/CRMUserDocument';
 import Note, { note } from '../interfaces/Note';
+import { ObjectTypeComposer, SchemaComposer } from 'graphql-compose';
+import composeWithMongoose from 'graphql-compose-mongoose';
+import { addFieldsToSchema } from '../graphQL/schema';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -77,4 +80,32 @@ export type AccountModel = Model<AccountDoc>;
  */
 export function createAccountModel(db: typeof mongoose): AccountModel {
   return db.model('Account', accountSchema);
+}
+
+/**
+ * Creates an `Account` type composer.
+ *
+ * @param {typeof mongoose} db the connected MongoDB instance
+ * @returns {ObjectTypeComposer<AccountDoc, unknown>} the AccountTC
+ */
+export function createAccountTC(
+  db: typeof mongoose
+): ObjectTypeComposer<AccountDoc, unknown> {
+  const Account = createAccountModel(db);
+  return composeWithMongoose(Account);
+}
+
+/**
+ * Adds fields to the provided schemaComposer for the Account model.
+ *
+ * @param {ObjectTypeComposer<AccountDoc, unknown>} AccountTC the Account type
+ * composer to get resolvers for
+ * @param {SchemaComposer<unknown>} schemaComposer the schemaComposer to add
+ * fields to
+ */
+export function addAccountFieldsToSchema(
+  AccountTC: ObjectTypeComposer<AccountDoc, unknown>,
+  schemaComposer: SchemaComposer<unknown>
+): void {
+  addFieldsToSchema<AccountDoc>(AccountTC, schemaComposer, 'account');
 }
