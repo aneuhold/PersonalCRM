@@ -22,15 +22,14 @@ const assert = chai.assert;
 export async function generateTestUser(): Promise<UserDoc> {
   const userName = 'someTestUser';
 
-  const query = `mutation {
-    userCreateOne(record: {
-      userName: "Test User"
-    }) {
+  const query = `mutation($userName:String!) {
+    userCreateOne(record: {userName: $userName}) {
       record {
+        _id
         userName
         dateCreated
         openDocuments {
-          docType,
+          docType
           id
         }
       }
@@ -39,12 +38,16 @@ export async function generateTestUser(): Promise<UserDoc> {
 
   const res = await Globals.requester.post(`/graphql`).send({
     query,
+    variables: {
+      userName,
+    },
   });
 
   // Makes sure the response is good and the new user is valid.
   assert.typeOf(res.body, 'object');
-  assert.equal(res.body.userName, userName);
-  assert.deepEqual(res.body.openDocuments, []);
+  const userRecord = res.body.data.userCreateOne.record;
+  assert.equal(userRecord.userName, userName);
+  assert.deepEqual(userRecord.openDocuments, []);
 
   const testUser: UserDoc = res.body;
   return testUser;
@@ -56,8 +59,23 @@ export async function generateTestUser(): Promise<UserDoc> {
  * @param {string} id the id of the user to delete
  */
 export async function deleteUser(id: string): Promise<void> {
-  const res = await Globals.requester.delete(`/api/user/${id}`);
+  const query = `mutation($userId:MongoID) {
+    userRemoveById(filter: {
+      _id: $userId
+    }) {
+      record {
+        _id
+      }
+    }
+  }`;
+  const res = await Globals.requester.post(`/graphql`).send({
+    query,
+    variables: {
+      userId: id,
+    },
+  });
   assert.equal(res.status, 200);
+  assert.equal(res.body.data.userRemoveById.record._id, id);
 }
 
 describe('GET', () => {
