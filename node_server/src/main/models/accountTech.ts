@@ -3,6 +3,9 @@ import CRMUserDocument, {
   crmUserDocument,
 } from '../interfaces/CRMUserDocument';
 import Note, { note } from '../interfaces/Note';
+import { ObjectTypeComposer, SchemaComposer } from 'graphql-compose';
+import composeWithMongoose from 'graphql-compose-mongoose';
+import { addFieldsToSchema } from '../graphQL/schema';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -62,4 +65,36 @@ export type AccountTechModel = Model<AccountTechDoc>;
  */
 export function createAccountTechModel(db: typeof mongoose): AccountTechModel {
   return db.model('AccountTech', accountTechSchema);
+}
+
+/**
+ * Creates a `AccountTech` type composer.
+ *
+ * @param {typeof mongoose} db the connected MongoDB instance
+ * @returns {ObjectTypeComposer<AccountTechDoc, unknown>} the AccountTechTC
+ */
+export function createAccountTechTC(
+  db: typeof mongoose
+): ObjectTypeComposer<AccountTechDoc, unknown> {
+  const AccountTech = createAccountTechModel(db);
+  return composeWithMongoose(AccountTech);
+}
+
+/**
+ * Adds fields to the provided schemaComposer for the AccountTech model.
+ *
+ * @param {ObjectTypeComposer<AccountTechDoc, unknown>} AccountTechTC the
+ * AccountTech type composer to get resolvers for
+ * @param {SchemaComposer<unknown>} schemaComposer the schemaComposer to add
+ * fields to
+ */
+export function addAccountTechFieldsToSchema(
+  AccountTechTC: ObjectTypeComposer<AccountTechDoc, unknown>,
+  schemaComposer: SchemaComposer<unknown>
+): void {
+  addFieldsToSchema<AccountTechDoc>(
+    AccountTechTC,
+    schemaComposer,
+    'accountTech'
+  );
 }

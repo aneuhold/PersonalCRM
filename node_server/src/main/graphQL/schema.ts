@@ -8,6 +8,21 @@ import {
 } from 'graphql-compose';
 import { createUserTC, addUserFieldsToSchema } from '../models/user';
 import { ArgsMap } from 'graphql-compose/lib/ObjectTypeComposer';
+import { createAccountTC, addAccountFieldsToSchema } from '../models/account';
+import {
+  createAccountTechTC,
+  addAccountTechFieldsToSchema,
+} from '../models/accountTech';
+import {
+  createManufacturerTC,
+  addManufacturerFieldsToSchema,
+} from '../models/manufacturer';
+import {
+  createOpportunityTC,
+  addOpportunityFieldsToSchema,
+} from '../models/opportunity';
+import { createTaskTC, addTaskFieldsToSchema } from '../models/task';
+import { createContactTC, addContactFieldsToSchema } from '../models/contact';
 
 /**
  * Creates the GraphQL schema for the project from the mongoose models.
@@ -19,8 +34,20 @@ export default function createGraphQLSchema(
   db: typeof mongoose
 ): GraphQLSchema {
   const UserTC = createUserTC(db);
+  const AccountTC = createAccountTC(db);
+  const AccountTechTC = createAccountTechTC(db);
+  const ContactTC = createContactTC(db);
+  const ManufacturerTC = createManufacturerTC(db);
+  const OpportunityTC = createOpportunityTC(db);
+  const TaskTC = createTaskTC(db);
 
   addUserFieldsToSchema(UserTC, schemaComposer);
+  addAccountFieldsToSchema(AccountTC, schemaComposer);
+  addAccountTechFieldsToSchema(AccountTechTC, schemaComposer);
+  addContactFieldsToSchema(ContactTC, schemaComposer);
+  addManufacturerFieldsToSchema(ManufacturerTC, schemaComposer);
+  addOpportunityFieldsToSchema(OpportunityTC, schemaComposer);
+  addTaskFieldsToSchema(TaskTC, schemaComposer);
 
   return schemaComposer.buildSchema();
 }

@@ -4,6 +4,9 @@ import CRMUserDocument, {
 } from '../interfaces/CRMUserDocument';
 import Note, { note } from '../interfaces/Note';
 import { ContactDoc } from './contact';
+import { ObjectTypeComposer, SchemaComposer } from 'graphql-compose';
+import composeWithMongoose from 'graphql-compose-mongoose';
+import { addFieldsToSchema } from '../graphQL/schema';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -66,4 +69,36 @@ export function createManufacturerModel(
   db: typeof mongoose
 ): ManufacturerModel {
   return db.model('Manufacturer', manufacturerSchema);
+}
+
+/**
+ * Creates a `Manufacturer` type composer.
+ *
+ * @param {typeof mongoose} db the connected MongoDB instance
+ * @returns {ObjectTypeComposer<ManufacturerDoc, unknown>} the ManufacturerTC
+ */
+export function createManufacturerTC(
+  db: typeof mongoose
+): ObjectTypeComposer<ManufacturerDoc, unknown> {
+  const Manufacturer = createManufacturerModel(db);
+  return composeWithMongoose(Manufacturer);
+}
+
+/**
+ * Adds fields to the provided schemaComposer for the Manufacturer model.
+ *
+ * @param {ObjectTypeComposer<ManufacturerDoc, unknown>} ManufacturerTC the
+ * Manufacturer type composer to get resolvers for
+ * @param {SchemaComposer<unknown>} schemaComposer the schemaComposer to add
+ * fields to
+ */
+export function addManufacturerFieldsToSchema(
+  ManufacturerTC: ObjectTypeComposer<ManufacturerDoc, unknown>,
+  schemaComposer: SchemaComposer<unknown>
+): void {
+  addFieldsToSchema<ManufacturerDoc>(
+    ManufacturerTC,
+    schemaComposer,
+    'manufacturer'
+  );
 }

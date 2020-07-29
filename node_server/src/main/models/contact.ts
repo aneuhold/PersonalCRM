@@ -3,6 +3,9 @@ import CRMUserDocument, {
   crmUserDocument,
 } from '../interfaces/CRMUserDocument';
 import Note, { note } from '../interfaces/Note';
+import { ObjectTypeComposer, SchemaComposer } from 'graphql-compose';
+import composeWithMongoose from 'graphql-compose-mongoose';
+import { addFieldsToSchema } from '../graphQL/schema';
 
 /**
  * Creates the contactSchema with the provided interfaces if desired.
@@ -60,4 +63,32 @@ export type ContactModel = Model<ContactDoc>;
  */
 export function createContactModel(db: typeof mongoose): ContactModel {
   return db.model('Contact', contactSchema);
+}
+
+/**
+ * Creates a `Contact` type composer.
+ *
+ * @param {typeof mongoose} db the connected MongoDB instance
+ * @returns {ObjectTypeComposer<ContactDoc, unknown>} the ContactTC
+ */
+export function createContactTC(
+  db: typeof mongoose
+): ObjectTypeComposer<ContactDoc, unknown> {
+  const Contact = createContactModel(db);
+  return composeWithMongoose(Contact);
+}
+
+/**
+ * Adds fields to the provided schemaComposer for the Contact model.
+ *
+ * @param {ObjectTypeComposer<ContactDoc, unknown>} ContactTC the Contact type
+ * composer to get resolvers for
+ * @param {SchemaComposer<unknown>} schemaComposer the schemaComposer to add
+ * fields to
+ */
+export function addContactFieldsToSchema(
+  ContactTC: ObjectTypeComposer<ContactDoc, unknown>,
+  schemaComposer: SchemaComposer<unknown>
+): void {
+  addFieldsToSchema<ContactDoc>(ContactTC, schemaComposer, 'contact');
 }

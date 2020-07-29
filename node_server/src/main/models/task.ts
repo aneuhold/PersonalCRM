@@ -3,6 +3,9 @@ import CRMUserDocument, {
   crmUserDocument,
 } from '../interfaces/CRMUserDocument';
 import Note, { note } from '../interfaces/Note';
+import { ObjectTypeComposer, SchemaComposer } from 'graphql-compose';
+import composeWithMongoose from 'graphql-compose-mongoose';
+import { addFieldsToSchema } from '../graphQL/schema';
 
 /**
  * Creates the taskSchema with the provided interfaces if desired.
@@ -56,4 +59,32 @@ export type TaskModel = Model<TaskDoc>;
  */
 export function createTaskModel(db: typeof mongoose): TaskModel {
   return db.model('Task', taskSchema);
+}
+
+/**
+ * Creates a `Task` type composer.
+ *
+ * @param {typeof mongoose} db the connected MongoDB instance
+ * @returns {ObjectTypeComposer<TaskDoc, unknown>} the TaskTC
+ */
+export function createTaskTC(
+  db: typeof mongoose
+): ObjectTypeComposer<TaskDoc, unknown> {
+  const Task = createTaskModel(db);
+  return composeWithMongoose(Task);
+}
+
+/**
+ * Adds fields to the provided schemaComposer for the Task model.
+ *
+ * @param {ObjectTypeComposer<TaskDoc, unknown>} TaskTC the Task type
+ * composer to get resolvers for
+ * @param {SchemaComposer<unknown>} schemaComposer the schemaComposer to add
+ * fields to
+ */
+export function addTaskFieldsToSchema(
+  TaskTC: ObjectTypeComposer<TaskDoc, unknown>,
+  schemaComposer: SchemaComposer<unknown>
+): void {
+  addFieldsToSchema<TaskDoc>(TaskTC, schemaComposer, 'task');
 }
