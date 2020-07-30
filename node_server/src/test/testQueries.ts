@@ -26,6 +26,13 @@ const returnFields: {
     id
     docType
   }`,
+  contact: `_id
+  name
+  email
+  phone
+  dateCreated
+  crmUser
+  notes`,
 };
 
 /**

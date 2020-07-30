@@ -29,6 +29,9 @@ describe('PersonalCRM tests', () => {
   describe('Account operations', () => {
     require('./accountTest');
   });
+  describe('Contact operations', () => {
+    require('./contactTest');
+  });
   describe('User operations', () => {
     require('./userTest');
   });

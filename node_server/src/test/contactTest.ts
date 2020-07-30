@@ -2,6 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 import Globals from './Globals';
 import { ContactDoc } from '../main/models/contact';
+import queries from './testQueries';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -20,19 +21,15 @@ const assert = chai.assert;
 export async function generateTestContactWithId(
   userId: string
 ): Promise<ContactDoc> {
-  const contactName = 'Some test contact';
-
-  const res = await Globals.requester.post(`/api/contact`).send({
-    name: contactName,
-    crmUser: userId,
-  });
+  const res = await Globals.send(queries.createOne('contact', userId));
 
   // Make sure the response is good and the new contact is valid.
+  assert.equal(res.status, 200);
   assert.typeOf(res.body, 'object');
-  assert.equal(res.body.name, contactName);
-  assert.equal(res.body.crmUser, userId);
+  const returnedContact = res.body.data.contactCreateOne.record;
+  assert.equal(returnedContact.crmUser, userId);
 
-  const testContact: ContactDoc = res.body;
+  const testContact: ContactDoc = returnedContact;
   return testContact;
 }
 
@@ -45,30 +42,48 @@ async function generateTestContact(): Promise<ContactDoc> {
   return generateTestContactWithId(Globals.testUser._id);
 }
 
-describe('GET', () => {
+/**
+ * Provides a uniform way to test all relevant fields are equal on a returned
+ * ContactDoc and the testContact.
+ *
+ * @param {ContactDoc} returnedContact the returned ContactDoc
+ * @param {ContactDoc} testContact the testContact
+ */
+function assertContactFields(
+  returnedContact: ContactDoc,
+  testContact: ContactDoc
+): void {
+  assert.equal(returnedContact.name, testContact.name);
+  assert.equal(returnedContact.crmUser, testContact.crmUser);
+  assert.equal(returnedContact.email, testContact.email);
+  assert.equal(returnedContact.phone, testContact.phone);
+}
+
+describe('contactById', () => {
   it('should return a contact if it exists in the DB', async () => {
     const testContact = await generateTestContact();
-    const res = await Globals.requester.get(`/api/contact/${testContact._id}`);
+    const res = await Globals.send(queries.getById('contact', testContact._id));
     assert.equal(res.status, 200);
     assert.typeOf(res.body, 'object');
-    assert.equal(res.body.name, testContact.name);
-    assert.equal(res.body.crmUser, testContact.crmUser);
+    const returnedContact: ContactDoc = res.body.data.contactById;
+    assertContactFields(returnedContact, testContact);
   });
 });
 
-describe('DELETE', () => {
+describe('contactRemoveById', () => {
   it('should delete a contact if it exists', async () => {
     const testContact = await generateTestContact();
-    const deleteRes = await Globals.requester.delete(
-      `/api/contact/${testContact._id}`
+    const deleteRes = await Globals.send(
+      queries.removeById('contact', testContact._id)
     );
     assert.equal(deleteRes.status, 200);
     assert.typeOf(deleteRes.body, 'object');
-    assert.equal(deleteRes.body.name, testContact.name);
-    assert.equal(deleteRes.body.crmUser, testContact.crmUser);
-    const getRes = await Globals.requester.get(
-      `/api/contact/${testContact._id}`
+    const returnedContact = deleteRes.body.data.contactRemoveById.record;
+    assertContactFields(returnedContact, testContact);
+    const getRes = await Globals.send(
+      queries.getById('contact', testContact._id)
     );
-    assert.equal(getRes.status, 400);
+    assert.equal(getRes.status, 200);
+    assert.equal(getRes.body.data.typeById, null);
   });
 });

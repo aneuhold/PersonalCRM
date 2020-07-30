@@ -4,6 +4,7 @@ import Globals from './Globals';
 import { UserDoc } from '../main/models/user';
 import queries from './testQueries';
 import { generateTestAccountWithId } from './accountTest';
+import { generateTestContactWithId } from './contactTest';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -103,8 +104,8 @@ describe('userRemoveById', () => {
     const testOpp = await generateTestOppWithId(testUser._id);
     */
     const testAccount = await generateTestAccountWithId(testUser._id);
-    /*
     const testContact = await generateTestContactWithId(testUser._id);
+    /*
     const testManufacturer = await generateTestManufacturerWithId(testUser._id);
     */
 
@@ -123,16 +124,17 @@ describe('userRemoveById', () => {
       queries.getById('account', testAccount._id)
     );
     assert.equal(getAccountRes.status, 200);
-    assert.equal(getAccountRes.body.data.typeById, null);
+    assert.equal(getAccountRes.body.data.accountById, null);
+
+    // Try to get the deleted contact
+    const getContactRes = await Globals.send(
+      queries.getById('contact', testContact._id)
+    );
+    assert.equal(getContactRes.status, 200);
+    assert.equal(getContactRes.body.data.contactById, null);
 
     /*
-    // Try to get the deleted contact
-    const getContactRes = await Globals.requester.get(
-      `/api/contact/${testContact._id}`
-    );
-    assert.equal(getContactRes.status, 400);
-
-    // Try to get the deleted account
+    // Try to get the deleted manufacturer
     const getManufacturerRes = await Globals.requester.get(
       `/api/manufacturer/${testManufacturer._id}`
     );
@@ -146,8 +148,11 @@ describe('userRemoveById', () => {
     */
 
     // Try to get the deleted user
-    const getUserRes = await Globals.requester.get(`/api/user/${testUser._id}`);
-    assert.equal(getUserRes.status, 400);
+    const getUserRes = await Globals.send(
+      queries.getById('user', testUser._id)
+    );
+    assert.equal(getUserRes.status, 200);
+    assert.equal(getUserRes.body.data.contactById, null);
 
     /*
     // Try to get the task of the user which should be deleted

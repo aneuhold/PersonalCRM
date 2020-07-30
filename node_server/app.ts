@@ -87,6 +87,7 @@ const mongooseConnectionOptions = {
  */
 function setupRoutes(db: typeof mongoose): void {
   app.use('/api', apiRouter(db));
+
   // Construct a schema, using GraphQL schema language
   const schema = createGraphQLSchema(db);
 
