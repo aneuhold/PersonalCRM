@@ -1,3 +1,33 @@
+import { crmModelName } from '../main/models/crmModels';
+
+export type GraphQLQueryPayload = {
+  query: string;
+  variables?: {
+    [index: string]: unknown;
+  };
+};
+
+const returnFields: {
+  [index: string]: string;
+} = {
+  account: `_id
+  name
+  region
+  businessContacts
+  zonesContacts
+  techDetails
+  crmLink
+  crmUser
+  notes`,
+  user: `_id
+  userName
+  dateCreated
+  openDocuments {
+    id
+    docType
+  }`,
+};
+
 /**
  * Holds re-usable queries for use with the `/graphql` endpoint. Each query has
  * a short description as far as what it needs and returns.
@@ -93,6 +123,102 @@ const queries = {
       }
     }
   }`,
+  /**
+   * Creates a query payload for the various blankById fields of the GraphQL
+   * server.
+   *
+   * Returned value would be in `res.body.data.typeById`.
+   *
+   * @param {crmModelName} type the name of the model to request
+   * @param {string} docId the ID of the document to get
+   * @returns {GraphQLQueryPayload} the payload to send to the GraphQL endpoint
+   */
+  getById: (type: crmModelName, docId: string): GraphQLQueryPayload => {
+    return {
+      query: `query ($docId: MongoID!) {
+        ${type}ById(_id: $docId) {
+          ${returnFields[type]}
+        }
+      }`,
+      variables: {
+        docId,
+      },
+    };
+  },
+  /**
+   * Creates a query payload for the typeCreateOne field of the GraphQL
+   * server. This is not valid for the `user` model.
+   *
+   * Returned value would be in `res.body.data.typeCreateOne.record`.
+   *
+   * @param {crmModelName} type the type of the model to createOne for
+   * @param {string} userId the userId to assign the model to
+   * @returns {GraphQLQueryPayload} the payload to send to the GraphQL endpoint
+   */
+  createOne: (type: crmModelName, userId: string): GraphQLQueryPayload => {
+    const capitalizedType = type.slice(0, 1).toUpperCase() + type.slice(1);
+    const doc = {
+      crmUser: userId,
+    };
+    return {
+      query: `mutation ($doc: CreateOne${capitalizedType}Input!) {
+        ${type}CreateOne(record: $doc) {
+          record {
+            ${returnFields[type]}
+          }
+        }
+      }`,
+      variables: {
+        doc,
+      },
+    };
+  },
+  /**
+   * Creates a query payload for the typeRemoveById field of the GraphQL
+   * server.
+   *
+   * Returned value would be in `res.body.data.typeRemoveById.record`.
+   *
+   * @param {crmModelName} type the type of the model to remove
+   * @param {string} docId the ID of the document to remove
+   * @returns {GraphQLQueryPayload} the payload to send to the GraphQL endpoint
+   */
+  removeById: (type: crmModelName, docId: string): GraphQLQueryPayload => {
+    return {
+      query: `mutation ($docId: MongoID!) {
+        ${type}RemoveById(filter: {_id: $docId}) {
+          record {
+            ${returnFields[type]}
+          }
+        }
+      }`,
+      variables: {
+        docId,
+      },
+    };
+  },
+  /**
+   * Creates a query payload for the typeRemoveMany field of the GraphQL
+   * server.
+   *
+   * Returned value would be in `res.body.data.typeRemoveMany.numAffected`.
+   *
+   * @param {crmModelName} type the type of the model to removeMany for
+   * @param {unknown} filter the filter object to use
+   * @returns {GraphQLQueryPayload} the payload to send to the GraphQL endpoint
+   */
+  removeMany: (type: crmModelName, filter: unknown): GraphQLQueryPayload => {
+    return {
+      query: `mutation ($filter: FilterRemoveManyAccountInput!) {
+        accountRemoveMany(filter: $filter) {
+          numAffected
+        }
+      }`,
+      variables: {
+        filter,
+      },
+    };
+  },
 };
 
 export default queries;

@@ -26,6 +26,9 @@ before(done => {
 
 describe('PersonalCRM tests', () => {
   require('./testStartup');
+  describe('Account operations', () => {
+    require('./accountTest');
+  });
   describe('User operations', () => {
     require('./userTest');
   });

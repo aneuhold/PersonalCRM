@@ -2,6 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 import Globals from './Globals';
 import { AccountDoc } from '../main/models/account';
+import queries from './testQueries';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -20,19 +21,15 @@ const assert = chai.assert;
 export async function generateTestAccountWithId(
   userId: string
 ): Promise<AccountDoc> {
-  const accountName = 'Some test account';
-
-  const res = await Globals.requester.post(`/api/account`).send({
-    name: accountName,
-    crmUser: userId,
-  });
+  const res = await Globals.send(queries.createOne('account', userId));
 
   // Make sure the response is good and the new account is valid.
+  assert.equal(res.status, 200);
   assert.typeOf(res.body, 'object');
-  assert.equal(res.body.name, accountName);
-  assert.equal(res.body.crmUser, userId);
+  const returnedAccount = res.body.data.accountCreateOne.record;
+  assert.equal(returnedAccount.crmUser, userId);
 
-  const testAccount: AccountDoc = res.body;
+  const testAccount: AccountDoc = returnedAccount;
   return testAccount;
 }
 
@@ -45,30 +42,50 @@ async function generateTestAccount(): Promise<AccountDoc> {
   return generateTestAccountWithId(Globals.testUser._id);
 }
 
-describe('GET', () => {
+/**
+ * Provides a uniform way to test all relevant fields are equal on a returned
+ * AccountDoc and the testAccount.
+ *
+ * @param {AccountDoc} returnedAccount the returned AccountDoc
+ * @param {AccountDoc} testAccount the testAccount
+ */
+function assertAccountFields(
+  returnedAccount: AccountDoc,
+  testAccount: AccountDoc
+): void {
+  assert.equal(returnedAccount.name, testAccount.name);
+  assert.equal(returnedAccount.crmUser, testAccount.crmUser);
+  assert.deepEqual(
+    returnedAccount.businessContacts,
+    testAccount.businessContacts
+  );
+}
+
+describe('accountById', () => {
   it('should return an account if it exists in the DB', async () => {
     const testAccount = await generateTestAccount();
-    const res = await Globals.requester.get(`/api/account/${testAccount._id}`);
+    const res = await Globals.send(queries.getById('account', testAccount._id));
     assert.equal(res.status, 200);
     assert.typeOf(res.body, 'object');
-    assert.equal(res.body.name, testAccount.name);
-    assert.equal(res.body.crmUser, testAccount.crmUser);
+    const returnedAccount: AccountDoc = res.body.data.accountById;
+    assertAccountFields(returnedAccount, testAccount);
   });
 });
 
-describe('DELETE', () => {
+describe('accountRemoveById', () => {
   it('should delete an account if it exists', async () => {
     const testAccount = await generateTestAccount();
-    const deleteRes = await Globals.requester.delete(
-      `/api/account/${testAccount._id}`
+    const deleteRes = await Globals.send(
+      queries.removeById('account', testAccount._id)
     );
     assert.equal(deleteRes.status, 200);
     assert.typeOf(deleteRes.body, 'object');
-    assert.equal(deleteRes.body.name, testAccount.name);
-    assert.equal(deleteRes.body.crmUser, testAccount.crmUser);
-    const getRes = await Globals.requester.get(
-      `/api/account/${testAccount._id}`
+    const returnedAccount = deleteRes.body.data.accountRemoveById.record;
+    assertAccountFields(returnedAccount, testAccount);
+    const getRes = await Globals.send(
+      queries.getById('account', testAccount._id)
     );
-    assert.equal(getRes.status, 400);
+    assert.equal(getRes.status, 200);
+    assert.equal(getRes.body.data.typeById, null);
   });
 });
