@@ -2,6 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 import Globals from './Globals';
 import { TaskDoc } from '../main/models/task';
+import queries from './testQueries';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -18,19 +19,15 @@ const assert = chai.assert;
  * @returns {TaskDoc} the created testTask
  */
 export async function generateTestTaskWithId(userId: string): Promise<TaskDoc> {
-  const taskTitle = 'Some test task';
+  const res = await Globals.send(queries.createOne('task', userId));
 
-  const res = await Globals.requester.post(`/api/task`).send({
-    title: taskTitle,
-    crmUser: userId,
-  });
-
-  // Makes sure the response is good and the new task is valid.
+  // Make sure the response is good and the new task is valid.
+  assert.equal(res.status, 200);
   assert.typeOf(res.body, 'object');
-  assert.equal(res.body.title, taskTitle);
-  assert.equal(res.body.crmUser, userId);
+  const returnedTask = res.body.data.taskCreateOne.record;
+  assert.equal(returnedTask.crmUser, userId);
 
-  const testTask: TaskDoc = res.body;
+  const testTask: TaskDoc = returnedTask;
   return testTask;
 }
 
@@ -43,28 +40,42 @@ async function generateTestTask(): Promise<TaskDoc> {
   return generateTestTaskWithId(Globals.testUser._id);
 }
 
-describe('GET', () => {
+/**
+ * Provides a uniform way to test all relevant fields are equal on a returned
+ * TaskDoc and the testTask.
+ *
+ * @param {TaskDoc} returnedTask the returned TaskDoc
+ * @param {TaskDoc} testTask the testTask
+ */
+function assertTaskFields(returnedTask: TaskDoc, testTask: TaskDoc): void {
+  assert.equal(returnedTask.title, testTask.title);
+  assert.equal(returnedTask.crmUser, testTask.crmUser);
+  assert.equal(returnedTask.notes, testTask.notes);
+}
+
+describe('taskById', () => {
   it('should return a task if it exists in the DB', async () => {
     const testTask = await generateTestTask();
-    const res = await Globals.requester.get(`/api/task/${testTask._id}`);
+    const res = await Globals.send(queries.getById('task', testTask._id));
+    assert.equal(res.status, 200);
     assert.typeOf(res.body, 'object');
-    assert.equal(res.body._id, testTask._id);
-    assert.equal(res.body.title, testTask.title);
-    assert.equal(res.body.crmUser, testTask.crmUser);
+    const returnedTask: TaskDoc = res.body.data.taskById;
+    assertTaskFields(returnedTask, testTask);
   });
 });
 
-describe('DELETE', () => {
+describe('taskRemoveById', () => {
   it('should delete a task if it exists', async () => {
     const testTask = await generateTestTask();
-    const deleteRes = await Globals.requester.delete(
-      `/api/task/${testTask._id}`
+    const deleteRes = await Globals.send(
+      queries.removeById('task', testTask._id)
     );
+    assert.equal(deleteRes.status, 200);
     assert.typeOf(deleteRes.body, 'object');
-    assert.equal(deleteRes.body._id, testTask._id);
-    assert.equal(deleteRes.body.title, testTask.title);
-    assert.equal(deleteRes.body.crmUser, testTask.crmUser);
-    const getRes = await Globals.requester.get(`/api/task/${testTask._id}`);
-    assert.equal(getRes.status, 400);
+    const returnedTask = deleteRes.body.data.taskRemoveById.record;
+    assertTaskFields(returnedTask, testTask);
+    const getRes = await Globals.send(queries.getById('task', testTask._id));
+    assert.equal(getRes.status, 200);
+    assert.equal(getRes.body.data.typeById, null);
   });
 });

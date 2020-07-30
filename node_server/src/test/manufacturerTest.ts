@@ -2,6 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 import Globals from './Globals';
 import { ManufacturerDoc } from '../main/models/manufacturer';
+import queries from './testQueries';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -20,19 +21,15 @@ const assert = chai.assert;
 export async function generateTestManufacturerWithId(
   userId: string
 ): Promise<ManufacturerDoc> {
-  const manufacturerName = 'Some test manufacturer';
-
-  const res = await Globals.requester.post(`/api/manufacturer`).send({
-    name: manufacturerName,
-    crmUser: userId,
-  });
+  const res = await Globals.send(queries.createOne('manufacturer', userId));
 
   // Make sure the response is good and the new manufacturer is valid.
+  assert.equal(res.status, 200);
   assert.typeOf(res.body, 'object');
-  assert.equal(res.body.name, manufacturerName);
-  assert.equal(res.body.crmUser, userId);
+  const returnedManufacturer = res.body.data.manufacturerCreateOne.record;
+  assert.equal(returnedManufacturer.crmUser, userId);
 
-  const testManufacturer: ManufacturerDoc = res.body;
+  const testManufacturer: ManufacturerDoc = returnedManufacturer;
   return testManufacturer;
 }
 
@@ -45,32 +42,51 @@ async function generateTestManufacturer(): Promise<ManufacturerDoc> {
   return generateTestManufacturerWithId(Globals.testUser._id);
 }
 
-describe('GET', () => {
+/**
+ * Provides a uniform way to test all relevant fields are equal on a returned
+ * ManufacturerDoc and the testManufacturer.
+ *
+ * @param {ManufacturerDoc} returnedManufacturer the returned ManufacturerDoc
+ * @param {ManufacturerDoc} testManufacturer the testManufacturer
+ */
+function assertManufacturerFields(
+  returnedManufacturer: ManufacturerDoc,
+  testManufacturer: ManufacturerDoc
+): void {
+  assert.equal(returnedManufacturer.name, testManufacturer.name);
+  assert.equal(returnedManufacturer.crmUser, testManufacturer.crmUser);
+  assert.deepEqual(returnedManufacturer.contacts, testManufacturer.contacts);
+}
+
+describe('manufacturerById', () => {
   it('should return a manufacturer if it exists in the DB', async () => {
     const testManufacturer = await generateTestManufacturer();
-    const res = await Globals.requester.get(
-      `/api/manufacturer/${testManufacturer._id}`
+    const res = await Globals.send(
+      queries.getById('manufacturer', testManufacturer._id)
     );
     assert.equal(res.status, 200);
     assert.typeOf(res.body, 'object');
-    assert.equal(res.body.name, testManufacturer.name);
-    assert.equal(res.body.crmUser, testManufacturer.crmUser);
+    const returnedManufacturer: ManufacturerDoc =
+      res.body.data.manufacturerById;
+    assertManufacturerFields(returnedManufacturer, testManufacturer);
   });
 });
 
-describe('DELETE', () => {
+describe('manufacturerRemoveById', () => {
   it('should delete a manufacturer if it exists', async () => {
     const testManufacturer = await generateTestManufacturer();
-    const deleteRes = await Globals.requester.delete(
-      `/api/manufacturer/${testManufacturer._id}`
+    const deleteRes = await Globals.send(
+      queries.removeById('manufacturer', testManufacturer._id)
     );
     assert.equal(deleteRes.status, 200);
     assert.typeOf(deleteRes.body, 'object');
-    assert.equal(deleteRes.body.name, testManufacturer.name);
-    assert.equal(deleteRes.body.crmUser, testManufacturer.crmUser);
-    const getRes = await Globals.requester.get(
-      `/api/manufacturer/${testManufacturer._id}`
+    const returnedManufacturer =
+      deleteRes.body.data.manufacturerRemoveById.record;
+    assertManufacturerFields(returnedManufacturer, testManufacturer);
+    const getRes = await Globals.send(
+      queries.getById('manufacturer', testManufacturer._id)
     );
-    assert.equal(getRes.status, 400);
+    assert.equal(getRes.status, 200);
+    assert.equal(getRes.body.data.typeById, null);
   });
 });

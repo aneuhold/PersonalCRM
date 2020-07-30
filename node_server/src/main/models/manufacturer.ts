@@ -22,7 +22,7 @@ function createManufacturerSchema(...addSchemas: SchemaDefinition[]): Schema {
   const schema = new Schema({
     name: {
       type: String,
-      required: true,
+      default: 'Un-named Manufacturer',
     },
     contacts: {
       type: [ObjectId],

@@ -21,7 +21,6 @@ function createAccountTechSchema(...addSchemas: SchemaDefinition[]): Schema {
   const schema = new Schema({
     account: {
       type: ObjectId,
-      required: true,
     },
     manufacturer: {
       type: ObjectId,

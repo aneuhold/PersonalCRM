@@ -19,7 +19,7 @@ function createTaskSchema(...addSchemas: SchemaDefinition[]): Schema {
   const schema = new Schema({
     title: {
       type: String,
-      required: true,
+      default: 'Unititled task',
     },
     dateCreated: { type: Date, default: Date.now },
   });

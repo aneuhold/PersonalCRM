@@ -7,6 +7,7 @@ import { createManufacturerModel } from './manufacturer';
 import { ObjectTypeComposer, SchemaComposer } from 'graphql-compose';
 import composeWithMongoose from 'graphql-compose-mongoose';
 import { addFieldsToSchema } from '../graphQL/schema';
+import { createAccountTechModel } from './accountTech';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -77,12 +78,14 @@ export function createUserModel(db: typeof mongoose): UserModel {
     const Account = createAccountModel(db);
     const Contact = createContactModel(db);
     const Manufacturer = createManufacturerModel(db);
+    const AccountTech = createAccountTechModel(db);
     await Promise.all([
       Opportunity.deleteMany({ crmUser: this._id }),
       Task.deleteMany({ crmUser: this._id }),
       Account.deleteMany({ crmUser: this._id }),
       Contact.deleteMany({ crmUser: this._id }),
       Manufacturer.deleteMany({ crmUser: this._id }),
+      AccountTech.deleteMany({ crmUser: this._id }),
     ]);
   });
 

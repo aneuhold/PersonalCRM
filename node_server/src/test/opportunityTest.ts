@@ -2,6 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 import Globals from './Globals';
 import { OpportunityDoc } from '../main/models/opportunity';
+import queries from './testQueries';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -10,65 +11,82 @@ chai.use(chaiHttp);
 const assert = chai.assert;
 
 /**
- * Creates a new test opp and asserts its values are correct with the given
+ * Creates a new test opportunity and asserts its values are correct with the given
  * userId as the `crmUser`.
  *
  * @param {string} userId the ID of the user to use as the `crmUser` for the
- * test opp
- * @returns {OpportunityDoc} the created testOpp
+ * test opportunity
+ * @returns {OpportunityDoc} the created testOpportunity
  */
-export async function generateTestOppWithId(
+export async function generateTestOpportunityWithId(
   userId: string
 ): Promise<OpportunityDoc> {
-  const oppName = 'Some test opp';
+  const res = await Globals.send(queries.createOne('opportunity', userId));
 
-  const res = await Globals.requester.post(`/api/opportunity`).send({
-    name: oppName,
-    crmUser: userId,
-  });
-
-  // Make sure the response is good and the new opp is valid.
+  // Make sure the response is good and the new opportunity is valid.
+  assert.equal(res.status, 200);
   assert.typeOf(res.body, 'object');
-  assert.equal(res.body.name, oppName);
-  assert.equal(res.body.crmUser, userId);
+  const returnedOpportunity = res.body.data.opportunityCreateOne.record;
+  assert.equal(returnedOpportunity.crmUser, userId);
 
-  const testOpp: OpportunityDoc = res.body;
-  return testOpp;
+  const testOpportunity: OpportunityDoc = returnedOpportunity;
+  return testOpportunity;
 }
 
 /**
- * Generates a test opp with the global testUser as the `crmUser`.
+ * Generates a test opportunity with the global testUser as the `crmUser`.
  *
- * @returns {OpportunityDoc} the created testOpp
+ * @returns {OpportunityDoc} the created testOpportunity
  */
-async function generateTestOpp(): Promise<OpportunityDoc> {
-  return generateTestOppWithId(Globals.testUser._id);
+async function generateTestOpportunity(): Promise<OpportunityDoc> {
+  return generateTestOpportunityWithId(Globals.testUser._id);
 }
 
-describe('GET', () => {
-  it('should return an opp if it exists in the DB', async () => {
-    const testOpp = await generateTestOpp();
-    const res = await Globals.requester.get(`/api/opportunity/${testOpp._id}`);
+/**
+ * Provides a uniform way to test all relevant fields are equal on a returned
+ * OpportunityDoc and the testOpportunity.
+ *
+ * @param {OpportunityDoc} returnedOpportunity the returned OpportunityDoc
+ * @param {OpportunityDoc} testOpportunity the testOpportunity
+ */
+function assertOpportunityFields(
+  returnedOpportunity: OpportunityDoc,
+  testOpportunity: OpportunityDoc
+): void {
+  assert.equal(returnedOpportunity.name, testOpportunity.name);
+  assert.equal(returnedOpportunity.crmUser, testOpportunity.crmUser);
+  assert.equal(returnedOpportunity.account, testOpportunity.account);
+  assert.equal(returnedOpportunity.oppNum, testOpportunity.oppNum);
+}
+
+describe('opportunityById', () => {
+  it('should return a opportunity if it exists in the DB', async () => {
+    const testOpportunity = await generateTestOpportunity();
+    const res = await Globals.send(
+      queries.getById('opportunity', testOpportunity._id)
+    );
     assert.equal(res.status, 200);
     assert.typeOf(res.body, 'object');
-    assert.equal(res.body.name, testOpp.name);
-    assert.equal(res.body.crmUser, testOpp.crmUser);
+    const returnedOpportunity: OpportunityDoc = res.body.data.opportunityById;
+    assertOpportunityFields(returnedOpportunity, testOpportunity);
   });
 });
 
-describe('DELETE', () => {
-  it('should delete an opp if it exists', async () => {
-    const testOpp = await generateTestOpp();
-    const deleteRes = await Globals.requester.delete(
-      `/api/opportunity/${testOpp._id}`
+describe('opportunityRemoveById', () => {
+  it('should delete a opportunity if it exists', async () => {
+    const testOpportunity = await generateTestOpportunity();
+    const deleteRes = await Globals.send(
+      queries.removeById('opportunity', testOpportunity._id)
     );
     assert.equal(deleteRes.status, 200);
     assert.typeOf(deleteRes.body, 'object');
-    assert.equal(deleteRes.body.name, testOpp.name);
-    assert.equal(deleteRes.body.crmUser, testOpp.crmUser);
-    const getRes = await Globals.requester.get(
-      `/api/opportunity/${testOpp._id}`
+    const returnedOpportunity =
+      deleteRes.body.data.opportunityRemoveById.record;
+    assertOpportunityFields(returnedOpportunity, testOpportunity);
+    const getRes = await Globals.send(
+      queries.getById('opportunity', testOpportunity._id)
     );
-    assert.equal(getRes.status, 400);
+    assert.equal(getRes.status, 200);
+    assert.equal(getRes.body.data.typeById, null);
   });
 });

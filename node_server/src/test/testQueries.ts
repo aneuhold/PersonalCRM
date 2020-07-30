@@ -33,6 +33,28 @@ const returnFields: {
   dateCreated
   crmUser
   notes`,
+  accountTech: `_id
+  account
+  manufacturer
+  dateCreated
+  crmUser
+  notes`,
+  manufacturer: `_id
+  contacts
+  dateCreated
+  crmUser
+  notes`,
+  opportunity: `_id
+  account
+  name
+  oppNum
+  crmUser
+  notes`,
+  task: `_id
+  title
+  dateCreated
+  crmUser
+  notes`,
 };
 
 /**
