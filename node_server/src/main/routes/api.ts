@@ -4,6 +4,11 @@ import mongoose, { Model, Document } from 'mongoose';
 import { createUserModel } from '../models/user';
 import { crmModelName } from '../models/crmModels';
 import { createOpportunityModel } from '../models/opportunity';
+import { createTaskModel } from '../models/task';
+import { createAccountModel } from '../models/account';
+import { createContactModel } from '../models/contact';
+import { createManufacturerModel } from '../models/manufacturer';
+import { createAccountTechModel } from '../models/accountTech';
 
 /**
  * Creates the express Router for the `/api` endpoint.
@@ -18,6 +23,11 @@ function createApiRouter(db: typeof mongoose): Router {
   const models: { [modelName: string]: Model<Document> } = {
     user: createUserModel(db),
     opportunity: createOpportunityModel(db),
+    task: createTaskModel(db),
+    account: createAccountModel(db),
+    contact: createContactModel(db),
+    manufacturer: createManufacturerModel(db),
+    accountTech: createAccountTechModel(db),
   };
 
   /**
@@ -118,8 +128,13 @@ function createApiRouter(db: typeof mongoose): Router {
       if (Object.keys(models).includes(req.params.type)) {
         const type = req.params.type as crmModelName;
         const Model = models[type];
-        const deletedDoc = await Model.findByIdAndDelete(req.params.id).exec();
-        res.status(200).json(deletedDoc);
+        const docToDelete = await Model.findById(req.params.id).exec();
+        if (!docToDelete) {
+          throw new Error(`Document with ID: "${req.params.id}" not found`);
+        } else {
+          await docToDelete.remove();
+        }
+        res.status(200).json(docToDelete);
       } else {
         throw new Error(`Type "${req.params.type} not found."`);
       }

@@ -26,6 +26,26 @@ before(done => {
 
 describe('PersonalCRM tests', () => {
   require('./testStartup');
-  require('./apiTest');
+  describe('Account operations', () => {
+    require('./accountTest');
+  });
+  describe('Contact operations', () => {
+    require('./contactTest');
+  });
+  describe('Opportunity operations', () => {
+    require('./opportunityTest');
+  });
+  describe('Task operations', () => {
+    require('./taskTest');
+  });
+  describe('AccountTech operations', () => {
+    require('./accountTechTest');
+  });
+  describe('Manufacturer operations', () => {
+    require('./manufacturerTest');
+  });
+  describe('User operations', () => {
+    require('./userTest');
+  });
   require('./testCleanup');
 });

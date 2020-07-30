@@ -1,6 +1,7 @@
 import chai from 'chai';
 import chaiHttp from 'chai-http';
 import Globals from './Globals';
+import queries from './testQueries';
 
 // Configure chai
 chai.use(chaiHttp);
@@ -8,23 +9,34 @@ chai.use(chaiHttp);
 // Use the assert style
 const assert = chai.assert;
 
-describe('DELETE /api/user/id', () => {
-  it('should delete a user', done => {
+describe('Tests cleanup', () => {
+  it('should delete a user provided a valid ID', done => {
     const testUser = Globals.testUser;
+    const query = queries.userRemoveById;
     if (testUser) {
-      chai
-        .request(Globals.app)
-        .delete(`/api/user/${testUser._id}`)
+      Globals.requester
+        .post(`/graphql`)
+        .send({
+          query,
+          variables: {
+            userId: testUser._id,
+          },
+        })
         .end((err, res) => {
           assert.isNull(err);
           assert.equal(res.status, 200);
           assert.typeOf(res.body, 'object');
-          assert.equal(res.body._id, testUser._id);
-          assert.equal(res.body.userName, testUser.userName);
+          const userRecord = res.body.data.userRemoveById.record;
+          assert.equal(userRecord._id, testUser._id);
+          assert.equal(userRecord.userName, testUser.userName);
           done();
         });
     } else {
       done(new Error(`testUser wasn't defined for this session of tests.`));
     }
   });
+});
+
+after(() => {
+  Globals.requester.close();
 });

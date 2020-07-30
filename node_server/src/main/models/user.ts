@@ -1,4 +1,13 @@
 import mongoose, { Model, Schema, Document } from 'mongoose';
+import { createOpportunityModel } from './opportunity';
+import { createTaskModel } from './task';
+import { createAccountModel } from './account';
+import { createContactModel } from './contact';
+import { createManufacturerModel } from './manufacturer';
+import { ObjectTypeComposer, SchemaComposer } from 'graphql-compose';
+import composeWithMongoose from 'graphql-compose-mongoose';
+import { addFieldsToSchema } from '../graphQL/schema';
+import { createAccountTechModel } from './accountTech';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -11,7 +20,19 @@ const userSchema = new Schema({
     required: true,
   },
   dateCreated: { type: Date, default: Date.now },
-  opportunities: ObjectId,
+
+  /**
+   * Lists out the open documents for the user in order.
+   */
+  openDocuments: {
+    type: [
+      {
+        docType: String,
+        id: ObjectId,
+      },
+    ],
+    default: [],
+  },
 });
 
 /**
@@ -20,6 +41,12 @@ const userSchema = new Schema({
 export interface UserDoc extends Document {
   userName: string;
   dateCreated: Date;
+  openDocuments: [
+    {
+      doctype: string;
+      id: typeof ObjectId;
+    }
+  ];
 }
 
 /**
@@ -40,5 +67,55 @@ export type UserModel = Model<UserDoc>;
  * @returns {UserModel} the `User` class
  */
 export function createUserModel(db: typeof mongoose): UserModel {
+  /**
+   * When a user is deleted, remove all of their associated documents as well.
+   * This needs to be manually updated with any new collections that implement
+   * `CRMUserdocument`.
+   */
+  userSchema.pre('remove', async function () {
+    const Opportunity = createOpportunityModel(db);
+    const Task = createTaskModel(db);
+    const Account = createAccountModel(db);
+    const Contact = createContactModel(db);
+    const Manufacturer = createManufacturerModel(db);
+    const AccountTech = createAccountTechModel(db);
+    await Promise.all([
+      Opportunity.deleteMany({ crmUser: this._id }),
+      Task.deleteMany({ crmUser: this._id }),
+      Account.deleteMany({ crmUser: this._id }),
+      Contact.deleteMany({ crmUser: this._id }),
+      Manufacturer.deleteMany({ crmUser: this._id }),
+      AccountTech.deleteMany({ crmUser: this._id }),
+    ]);
+  });
+
   return db.model('User', userSchema);
+}
+
+/**
+ * Creates a `User` type composer.
+ *
+ * @param {typeof mongoose} db the connected MongoDB instance
+ * @returns {ObjectTypeComposer<UserDoc, unknown>} the UserTC
+ */
+export function createUserTC(
+  db: typeof mongoose
+): ObjectTypeComposer<UserDoc, unknown> {
+  const User = createUserModel(db);
+  return composeWithMongoose(User);
+}
+
+/**
+ * Adds fields to the provided schemaComposer for the User model.
+ *
+ * @param {ObjectTypeComposer<UserDoc, unknown>} UserTC the User type composer
+ * to get resolvers for
+ * @param {SchemaComposer<unknown>} schemaComposer the schemaComposer to add
+ * fields to
+ */
+export function addUserFieldsToSchema(
+  UserTC: ObjectTypeComposer<UserDoc, unknown>,
+  schemaComposer: SchemaComposer<unknown>
+): void {
+  addFieldsToSchema<UserDoc>(UserTC, schemaComposer, 'user');
 }

@@ -6,6 +6,7 @@ import logger from 'morgan';
 import mongoose from 'mongoose';
 import http from 'http';
 import cors from 'cors';
+import { graphqlHTTP } from 'express-graphql';
 
 /**
  * Allows usage of the .env file in the root directory of `node_server`. Should
@@ -14,6 +15,7 @@ import cors from 'cors';
 dotenv.config();
 
 import apiRouter from './src/main/routes/api';
+import createGraphQLSchema from './src/main/graphQL/schema';
 
 /**
  * @fires started when the server is finished setting up and connected to
@@ -85,6 +87,18 @@ const mongooseConnectionOptions = {
  */
 function setupRoutes(db: typeof mongoose): void {
   app.use('/api', apiRouter(db));
+
+  // Construct a schema, using GraphQL schema language
+  const schema = createGraphQLSchema(db);
+
+  // Setup GraphQL
+  app.use(
+    '/graphql',
+    graphqlHTTP({
+      schema: schema,
+      graphiql: true,
+    })
+  );
 }
 
 /**
