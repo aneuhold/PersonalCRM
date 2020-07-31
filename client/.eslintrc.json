@@ -1,0 +1,97 @@
+{
+  "extends": [
+    "plugin:react/recommended",
+    "airbnb",
+    "plugin:prettier/recommended"
+  ],
+  "env": {
+    "browser": true,
+    "node": true,
+    "jest": true
+  },
+  "plugins": [
+    "prettier"
+  ],
+  "overrides": [
+    {
+      /* Sets this override to .ts files and .tsx files */
+      "files": [
+        "**/*.ts?(x)"
+      ],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "ecmaVersion": 2020,
+        "project": "./tsconfig.json",
+        "sourceType": "module",
+        "ecmaFeatures": {
+          "jsx": true
+        }
+      },
+      "settings": {
+        "react": {
+          "version": "detect"
+        },
+        /* Used to correctly import .tsx files and not flag it */
+        "import/resolver": {
+          "node": {
+            "extensions": [
+              ".js",
+              ".jsx",
+              ".ts",
+              ".tsx"
+            ]
+          }
+        }
+      },
+      "plugins": [
+        "prettier",
+        "@typescript-eslint"
+      ],
+      /* Sets up a similar rule-set for TypeScript files only */
+      "extends": [
+        "plugin:react/recommended",
+        "airbnb",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:prettier/recommended"
+      ],
+      "rules": {
+        /* Disabled because some return types for functions repeat code, and
+        make maintanence difficult. For example return types that are variable
+        based on some object somewhere else in the code like createStyles
+        return types. */
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "react/jsx-wrap-multilines": [
+          "error",
+          {
+            "declaration": false,
+            "assignment": false
+          }
+        ],
+        /* Disabled so that we can use things like _id off of objects */
+        "no-underscore-dangle": "off",
+        "import/extensions": "off",
+        /* Disabled because it conflicts with TypeScript */
+        "new-cap": "off",
+        /* Disabled because this rule isn't picking up the TypeScript 
+        definitions even though they are displaying on hover like expected 
+        within the JSDoc documentation */
+        "jsdoc/no-undefined-types": "off",
+        "react/jsx-filename-extension": [
+          1,
+          {
+            "extensions": [
+              ".tsx",
+              ".jsx"
+            ]
+          }
+        ],
+        /* Disabled because sometimes we want to have useEffect use no
+        properties so that it runs only on component mount and dismount, even
+        though it might use some of the internal variables of the component*/
+        "react-hooks/exhaustive-deps": 0
+      }
+    }
+  ]
+}
