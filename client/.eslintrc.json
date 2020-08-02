@@ -71,6 +71,8 @@
         ],
         /* Disabled so that we can use things like _id off of objects */
         "no-underscore-dangle": "off",
+        /* Disabled because typescript takes care of types */
+        "react/require-default-props": "off",
         "import/extensions": "off",
         /* Disabled because it conflicts with TypeScript */
         "new-cap": "off",
