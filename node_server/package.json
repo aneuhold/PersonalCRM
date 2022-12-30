@@ -57,7 +57,7 @@
     "graphql": "^15.3.0",
     "graphql-compose": "^7.18.1",
     "graphql-compose-mongoose": "^7.4.1",
-    "mocha": "^7.1.2",
+    "mocha": "^10.2.0",
     "mongoose": "^5.9.26",
     "mongoose-int32": "^0.3.1",
     "morgan": "~1.9.1",
